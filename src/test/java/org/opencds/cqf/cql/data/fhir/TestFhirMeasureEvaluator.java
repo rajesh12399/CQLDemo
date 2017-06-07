@@ -40,60 +40,7 @@ import org.opencds.cqf.cql.terminology.fhir.FhirTerminologyProvider;
  * Created by Bryn on 5/7/2016.
  */
 public class TestFhirMeasureEvaluator {
-    @Test
-    public void TestCBP() throws IOException, JAXBException {
-        File xmlFile = new File(URLDecoder.decode(TestFhirMeasureEvaluator.class.getResource("library-col.elm.xml").getFile(), "UTF-8"));
-        Library library = CqlLibraryReader.read(xmlFile);
-
-        Context context = new Context(library);
-
-//        FhirDataProvider provider = new FhirDataProvider().withEndpoint("http://fhirtest.uhn.ca/baseDstu3");
-//        FhirDataProvider provider = new FhirDataProvider().withEndpoint("http://fhir3.healthintersections.com.au/open");
-//        FhirDataProvider provider = new FhirDataProvider().withEndpoint("http://wildfhir.aegis.net/fhir");
-//        FhirDataProvider provider = new FhirDataProvider().withEndpoint("http://open-api2.hspconsortium.org/payerextract/data");
-        FhirDataProvider provider = new FhirDataProvider().withEndpoint("http://measure.eval.kanvix.com/cqf-ruler/baseDstu3");
-
-        FhirTerminologyProvider terminologyProvider = new FhirTerminologyProvider().withEndpoint("http://measure.eval.kanvix.com/cqf-ruler/baseDstu3");
-//        FhirTerminologyProvider terminologyProvider = new FhirTerminologyProvider().withBasicAuth("brhodes", "apelon123!").withEndpoint("http://fhir.ext.apelon.com/dtsserverws/fhir");
-        provider.setTerminologyProvider(terminologyProvider);
-        provider.setExpandValueSets(true);
-
-        context.registerDataProvider("http://hl7.org/fhir", provider);
-
-        xmlFile = new File(URLDecoder.decode(TestFhirMeasureEvaluator.class.getResource("measure-col.xml").getFile(), "UTF-8"));
-        Measure measure = provider.getFhirClient().getFhirContext().newXmlParser().parseResource(Measure.class, new FileReader(xmlFile));
-
-        String patientId = "Patient-12214";
-        Patient patient = provider.getFhirClient().read().resource(Patient.class).withId(patientId).execute();
-        // TODO: Couldn't figure out what matcher to use here, gave up.
-        if (patient == null) {
-            throw new RuntimeException("Patient is null");
-        }
-
-        context.setContextValue("Patient", patientId);
-
-        FhirMeasureEvaluator evaluator = new FhirMeasureEvaluator();
-
-        // Java's date support is _so_ bad.
-        Calendar cal = Calendar.getInstance();
-        cal.setTimeInMillis(0);
-        cal.set(2014, 1, 1, 0, 0, 0);
-        Date periodStart = cal.getTime();
-        cal.set(2014, 12, 31, 11, 59, 59);
-        Date periodEnd = cal.getTime();
-
-        org.hl7.fhir.dstu3.model.MeasureReport report = evaluator.evaluate(context, measure, patient, periodStart, periodEnd);
-
-        if (report == null) {
-            throw new RuntimeException("MeasureReport is null");
-        }
-
-        if (report.getEvaluatedResources() == null) {
-            throw new RuntimeException("EvaluatedResources is null");
-        }
-
-        System.out.println(String.format("Bundle url: %s", report.getEvaluatedResources().getReference()));
-    }
+    
 
     private ModelManager modelManager;
     private ModelManager getModelManager() {
@@ -147,7 +94,7 @@ public class TestFhirMeasureEvaluator {
         return library;
     }
 
-    @Test
+   /* @Test
     public void TestMeasure() throws IOException, JAXBException {
         File cqlFile = new File(URLDecoder.decode(TestFhirMeasureEvaluator.class.getResource("library-test.cql").getFile(), "UTF-8"));
         String cql = FileUtils.readFileToString(cqlFile, StandardCharsets.UTF_8);
@@ -200,5 +147,5 @@ public class TestFhirMeasureEvaluator {
         }
 
         System.out.println(String.format("Bundle url: %s", report.getEvaluatedResources().getReference()));
-    }
+    }*/
 }
